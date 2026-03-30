@@ -1,0 +1,22 @@
+{
+  "activeStrategy": "Momentum Swing (1H Breakout)",
+  "status": "HALTED",
+  "nextEntryCriteria": "ETH 1H close > $2,030 + volume 1.5x avg + F&G > 20",
+  "lastSignal": "🔴 NO ENTRY — F&G: 8 (Extreme Fear), ETH $2,036 below 1H EMA, volume at 0.66× avg (need 1.5×). All entry criteria NOT met.",
+  "history": [
+    {
+      "strategy": "FVG Scalp",
+      "status": "KILLED",
+      "startedAt": "2026-03-01T00:00:00Z",
+      "endedAt": "2026-03-30T00:00:00Z",
+      "reason": "Kill switch triggered — strategy retired"
+    },
+    {
+      "strategy": "Momentum Swing (1H Breakout)",
+      "status": "HALTED",
+      "startedAt": "2026-03-30T00:00:00Z",
+      "endedAt": null,
+      "reason": "Pending activation — awaiting entry criteria"
+    }
+  ]
+}

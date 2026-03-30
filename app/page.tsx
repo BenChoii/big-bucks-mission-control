@@ -9,6 +9,8 @@ import MarketSignals from "./components/MarketSignals";
 import TopMovers from "./components/TopMovers";
 import FearGreed from "./components/FearGreed";
 import TradeHistory from "./components/TradeHistory";
+import WinRateAlert from "./components/WinRateAlert";
+import StrategyIndicator from "./components/StrategyIndicator";
 
 function useFetch<T>(url: string, interval: number, initial: T): T {
   const [data, setData] = useState<T>(initial);
@@ -38,17 +40,22 @@ export default function Dashboard() {
     assets: [],
   });
   const agentData = useFetch<any>("/api/agents", 15000, { agents: [] });
+  const strategy = useFetch<any>("/api/strategy", 30000, { activeStrategy: "HALTED", status: "HALTED", history: [] });
 
   const pnl = parseFloat(account.unrealizedPnl || "0");
   const pnlStr = pnl >= 0 ? `+$${pnl.toFixed(4)}` : `-$${Math.abs(pnl).toFixed(4)}`;
   const pnlColor = pnl >= 0 ? "text-emerald-400" : "text-red-400";
-  const winRate =
-    trades.wins + trades.losses > 0
-      ? `${trades.wins}/${trades.wins + trades.losses}`
-      : "0/0";
+
+  const totalTrades = trades.wins + trades.losses;
+  const winRatePct = totalTrades > 0 ? (trades.wins / totalTrades) * 100 : null;
+  const winRateLabel = totalTrades > 0 ? `${trades.wins}/${totalTrades} = ${winRatePct!.toFixed(0)}%` : "0/0";
+  const killSwitchActive = winRatePct !== null && winRatePct < 40;
 
   return (
     <div className="min-h-screen p-4 max-w-7xl mx-auto">
+      {/* Win Rate Alert Banner */}
+      <WinRateAlert winRatePct={winRatePct} wins={trades.wins} total={totalTrades} />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -66,17 +73,33 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <StatCard
           label="Account Value"
           value={`$${parseFloat(account.accountValue || "0").toFixed(2)}`}
           sub={`Withdrawable: $${parseFloat(account.withdrawable || "0").toFixed(2)}`}
         />
         <StatCard label="Unrealized P&L" value={pnlStr} color={pnlColor} />
-        <StatCard label="Win / Loss" value={winRate} sub={`Closed P&L: $${trades.totalClosedPnl || "0"}`} />
+        <StatCard
+          label="Win Rate"
+          value={winRateLabel}
+          sub={`Closed P&L: $${trades.totalClosedPnl || "0"}`}
+          color={killSwitchActive ? "text-red-400" : winRatePct !== null ? "text-emerald-400" : "text-slate-100"}
+        />
         <FearGreed
           value={market.fearAndGreed?.value || "--"}
           classification={market.fearAndGreed?.value_classification || "N/A"}
+        />
+      </div>
+
+      {/* Strategy Indicator */}
+      <div className="mb-6">
+        <StrategyIndicator
+          activeStrategy={strategy.activeStrategy}
+          status={strategy.status}
+          history={strategy.history}
+          lastSignal={strategy.lastSignal}
+          nextEntryCriteria={strategy.nextEntryCriteria}
         />
       </div>
 
@@ -91,7 +114,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <AgentActivity agents={agentData.agents} />
+        <AgentActivity agents={agentData.agents} fills={agentData.fills} />
         <MarketSignals assets={market.assets} />
       </div>
 

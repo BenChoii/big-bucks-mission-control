@@ -19,3 +19,12 @@ export async function getBinanceTickers() {
   );
   return res.json();
 }
+
+export async function getDexScreenerBoosts() {
+  const res = await fetch(
+    "https://api.dexscreener.com/token-boosts/latest/v1",
+    { next: { revalidate: 0 } }
+  );
+  if (!res.ok) return [];
+  return res.json();
+}
